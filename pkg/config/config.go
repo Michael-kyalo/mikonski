@@ -32,3 +32,14 @@ func LoadConfig() (*Config, error) {
 		Model:  model,
 	}, nil
 }
+
+// ApplyOverrides applies CLI flags to override loaded configuration.
+func ApplyOverrides(cfg *Config, overrides map[string]string) *Config {
+	if apiKey, exists := overrides["APIKey"]; exists {
+		cfg.APIKey = apiKey
+	}
+	if model, exists := overrides["Model"]; exists {
+		cfg.Model = model
+	}
+	return cfg
+}

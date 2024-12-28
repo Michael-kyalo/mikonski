@@ -4,11 +4,16 @@ import (
 	"fmt"
 
 	"github.com/Michael-kyalo/mikonski/pkg/ai"
+	"github.com/Michael-kyalo/mikonski/pkg/config"
 	"github.com/Michael-kyalo/mikonski/pkg/session"
 	"github.com/spf13/cobra"
 )
 
-var question string
+var (
+	question string
+	apiKey   string
+	model    string
+)
 
 // Intialize session management
 var sess = session.NewSession()
@@ -17,17 +22,27 @@ var sess = session.NewSession()
 var askCmd = &cobra.Command{
 	Use:   "ask",
 	Short: "Ask a question and get an answer from Mikonski",
-	Long: `The "ask" command allows you to query Mikonski with a question.
-For example:
-  mikonski ask --question "What is the capital of France?"`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Load base configuration
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			fmt.Printf("Error loading configuration: %v\n", err)
+			return
+		}
+
+		// Apply CLI overrides
+		overrides := map[string]string{
+			"APIKey": apiKey,
+			"Model":  model,
+		}
+		cfg = config.ApplyOverrides(cfg, overrides)
+
 		if question == "" {
 			fmt.Println("Please provide a question using the --question flag.")
 			return
 		}
 
-		// Initialize the AI client
-		client := ai.OpenAIClient{}
+		client := ai.NewOpenAIClient(cfg.APIKey, cfg.Model)
 		context := sess.GetContext()
 
 		// Append context if available
@@ -35,24 +50,23 @@ For example:
 			question = context + " " + question
 		}
 
-		// Get the response from the AI model
 		response, err := client.Ask(question)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
 
-		// Update the session context with the response
+		// Update session context
 		sess.AddContext(question, response)
 
-		// Print the response
 		fmt.Printf("Mikonski: %s\n", response)
 	},
 }
 
 func init() {
-	// Add a flag to capture the user's question
 	askCmd.Flags().StringVarP(&question, "question", "q", "", "The question to ask")
-	// Register the `ask` command as a subcommand of the root
+	askCmd.Flags().StringVar(&apiKey, "apikey", "", "OpenAI API Key (overrides configuration)")
+	askCmd.Flags().StringVar(&model, "model", "", "OpenAI model to use (overrides configuration)")
+
 	rootCmd.AddCommand(askCmd)
 }
