@@ -33,3 +33,38 @@ func TestReminderClear(t *testing.T) {
 		t.Errorf("Expected 0 reminders, got %d", len(scheduler.List()))
 	}
 }
+
+func TestReminderList(t *testing.T) {
+	scheduler := reminders.NewScheduler()
+	scheduler.Set("Test Reminder 1", time.Now().Add(1*time.Hour))
+	scheduler.Set("Test Reminder 2", time.Now().Add(2*time.Hour))
+
+	reminders := scheduler.List()
+	if len(reminders) != 2 {
+		t.Errorf("Expected 2 reminders, got %d", len(reminders))
+	}
+
+	if reminders[0].Description != "Test Reminder 1" || reminders[0].Time.After(time.Now().Add(1*time.Hour)) {
+		t.Error("First reminder is not set correctly")
+	}
+}
+
+func TestPersistentReminders(t *testing.T) {
+	scheduler := reminders.NewScheduler()
+
+	// Add reminders
+	scheduler.Set("Test Reminder 1", time.Now().Add(1*time.Hour))
+	scheduler.Set("Test Reminder 2", time.Now().Add(2*time.Hour))
+
+	// List reminders
+	reminders := scheduler.List()
+	if len(reminders) != 2 {
+		t.Errorf("Expected 2 reminders, got %d", len(reminders))
+	}
+
+	// Clear reminders
+	scheduler.Clear()
+	if len(scheduler.List()) != 0 {
+		t.Errorf("Expected 0 reminders, got %d", len(scheduler.List()))
+	}
+}
