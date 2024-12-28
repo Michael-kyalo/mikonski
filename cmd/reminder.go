@@ -23,8 +23,17 @@ var logger = logging.GetLogger()
 var reminderCmd = &cobra.Command{
 	Use:   "reminder",
 	Short: "Manage reminders in Mikonski",
-	Long: `The "reminder" command lets you manage reminders. 
-Subcommands include "set", "list", and "clear".`,
+	Long: `The "reminder" command lets you manage reminders.
+Available subcommands:
+  set       Set a new reminder
+  list      List all reminders
+  clear     Clear all reminders
+
+Examples:
+  mikonski reminder set --description "Meeting with team" --time "2024-12-30 10:00:00"
+  mikonski reminder list
+  mikonski reminder clear`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("reminder command invoked")
 		fmt.Println("Use a subcommand: set, list, clear")
@@ -60,7 +69,9 @@ You need to provide both a description and a time.`,
 			return
 		}
 
+		logger.Info("reminder set successfully", zap.String("description", reminderDescription), zap.Time("time", parsedTime))
 		fmt.Println("Reminder set successfully!")
+		fmt.Println("You can view your reminders using the 'reminder list' command.")
 	},
 }
 

@@ -20,6 +20,10 @@ var (
 var askCmd = &cobra.Command{
 	Use:   "ask",
 	Short: "Ask a question and get an answer from Mikonski",
+	Long: `The "ask" command allows you to query Mikonski with a question.
+Examples:
+  mikonski ask --question "What is the capital of France?"
+  mikonski ask -q "Explain recursion in simple terms."`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := logging.GetLogger()
 
@@ -63,7 +67,10 @@ var askCmd = &cobra.Command{
 		// Update session context
 		sess.AddContext(question, response)
 		logger.Info("response received", zap.String("response", response))
+		// Provide user feedback
 		fmt.Printf("Mikonski: %s\n", response)
+		fmt.Println("Your question and answer have been saved to the session history.")
+
 	},
 }
 
