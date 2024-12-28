@@ -6,7 +6,6 @@ import (
 	"github.com/Michael-kyalo/mikonski/pkg/ai"
 	"github.com/Michael-kyalo/mikonski/pkg/config"
 	"github.com/Michael-kyalo/mikonski/pkg/logging"
-	"github.com/Michael-kyalo/mikonski/pkg/session"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -16,9 +15,6 @@ var (
 	apiKey   string
 	model    string
 )
-
-// Intialize session management
-var sess = session.NewSession()
 
 // askCmd represents the `ask` command for querying Mikonski.
 var askCmd = &cobra.Command{

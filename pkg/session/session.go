@@ -2,7 +2,11 @@ package session
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
+
+	"github.com/Michael-kyalo/mikonski/pkg/logging"
+	"go.uber.org/zap"
 )
 
 // QuestionResponse represents a question and its response.
@@ -16,9 +20,57 @@ type Session struct {
 	history []QuestionResponse
 }
 
-// NewSession initializes a new session.
+const sessionFile = "session.json" // File to store session data
+
+// NewSession initializes a new session, loading data from a file if available.
 func NewSession() *Session {
-	return &Session{history: []QuestionResponse{}}
+	session := &Session{history: []QuestionResponse{}}
+	if err := session.LoadFromFile(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		logging.GetLogger().Error("failed to load session from file", zap.Error(err))
+	}
+	return session
+}
+
+// SaveToFile saves the session history to a file.
+func (s *Session) SaveToFile() error {
+	logger := logging.GetLogger()
+
+	file, err := os.Create(sessionFile)
+	if err != nil {
+		logger.Error("failed to create session file", zap.Error(err))
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(s.history); err != nil {
+		logger.Error("failed to encode session history to file", zap.Error(err))
+		return err
+	}
+
+	logger.Info("session saved to file", zap.String("file", sessionFile))
+	return nil
+}
+
+// LoadFromFile loads the session history from a file.
+func (s *Session) LoadFromFile() error {
+	logger := logging.GetLogger()
+
+	file, err := os.Open(sessionFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&s.history); err != nil {
+		logger.Error("failed to decode session history from file", zap.Error(err))
+		return err
+	}
+
+	logger.Info("session loaded from file", zap.String("file", sessionFile))
+	return nil
 }
 
 // AddContext updates the session context and history.
