@@ -49,7 +49,6 @@ func (s *Session) SaveToFile() error {
 		return err
 	}
 
-	logger.Info("session saved to file", zap.String("file", sessionFile))
 	return nil
 }
 
@@ -69,7 +68,6 @@ func (s *Session) LoadFromFile() error {
 		return err
 	}
 
-	logger.Info("session loaded from file", zap.String("file", sessionFile))
 	return nil
 }
 

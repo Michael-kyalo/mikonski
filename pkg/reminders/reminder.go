@@ -50,7 +50,6 @@ func (s *Scheduler) SaveToFile() error {
 		return err
 	}
 
-	logger.Info("reminders saved to file", zap.String("file", remindersFile))
 	return nil
 }
 
@@ -70,7 +69,6 @@ func (s *Scheduler) LoadFromFile() error {
 		return err
 	}
 
-	logger.Info("reminders loaded from file", zap.String("file", remindersFile))
 	return nil
 }
 
@@ -115,7 +113,6 @@ func (s *Scheduler) ExportReminders(filename string) error {
 		return err
 	}
 
-	logger.Info("reminders exported successfully", zap.String("file", filename))
 	return nil
 }
 
