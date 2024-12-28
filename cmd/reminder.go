@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/Michael-kyalo/mikonski/pkg/logging"
 	"github.com/Michael-kyalo/mikonski/pkg/reminders"
 	"github.com/spf13/cobra"
-	"time"
+	"go.uber.org/zap"
 )
 
 var (
@@ -14,6 +17,7 @@ var (
 
 // Scheduler manages reminders during the session.
 var scheduler = reminders.NewScheduler()
+var logger = logging.GetLogger()
 
 // reminderCmd represents the parent command for reminder-related operations.
 var reminderCmd = &cobra.Command{
@@ -22,6 +26,7 @@ var reminderCmd = &cobra.Command{
 	Long: `The "reminder" command lets you manage reminders. 
 Subcommands include "set", "list", and "clear".`,
 	Run: func(cmd *cobra.Command, args []string) {
+		logger.Info("reminder command invoked")
 		fmt.Println("Use a subcommand: set, list, clear")
 	},
 }
@@ -34,6 +39,7 @@ var setCmd = &cobra.Command{
 You need to provide both a description and a time.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if reminderDescription == "" || reminderTime == "" {
+			logger.Warn("missing required flags for setting reminder")
 			fmt.Println("Please provide both --description and --time flags.")
 			return
 		}
@@ -41,6 +47,7 @@ You need to provide both a description and a time.`,
 		// Parse the reminder time
 		parsedTime, err := time.Parse("2006-01-02 15:04:05", reminderTime)
 		if err != nil {
+			logger.Error("invalid time format", zap.String("input", reminderTime), zap.Error(err))
 			fmt.Printf("Invalid time format. Use 'YYYY-MM-DD HH:MM:SS'. Error: %v\n", err)
 			return
 		}
@@ -48,6 +55,7 @@ You need to provide both a description and a time.`,
 		// Add the reminder to the scheduler
 		err = scheduler.Set(reminderDescription, parsedTime)
 		if err != nil {
+			logger.Error("failed to set reminder", zap.Error(err))
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
@@ -63,6 +71,7 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		reminders := scheduler.List()
 		if len(reminders) == 0 {
+			logger.Info("No reminders")
 			fmt.Println("No reminders set.")
 			return
 		}
@@ -80,6 +89,7 @@ var clearCmd = &cobra.Command{
 	Short: "Clear all reminders",
 	Run: func(cmd *cobra.Command, args []string) {
 		scheduler.Clear()
+		logger.Info("Reminders cleared")
 		fmt.Println("All reminders cleared!")
 	},
 }

@@ -5,8 +5,10 @@ import (
 
 	"github.com/Michael-kyalo/mikonski/pkg/ai"
 	"github.com/Michael-kyalo/mikonski/pkg/config"
+	"github.com/Michael-kyalo/mikonski/pkg/logging"
 	"github.com/Michael-kyalo/mikonski/pkg/session"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
@@ -23,21 +25,26 @@ var askCmd = &cobra.Command{
 	Use:   "ask",
 	Short: "Ask a question and get an answer from Mikonski",
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := logging.GetLogger()
+
 		// Load base configuration
 		cfg, err := config.LoadConfig()
 		if err != nil {
+			logger.Error("failed to load configuration", zap.Error(err))
+
 			fmt.Printf("Error loading configuration: %v\n", err)
 			return
 		}
 
 		// Apply CLI overrides
 		overrides := map[string]string{
-			"APIKey": apiKey,
-			"Model":  model,
+			"APIKey": cfg.APIKey,
+			"Model":  cfg.Model,
 		}
 		cfg = config.ApplyOverrides(cfg, overrides)
 
 		if question == "" {
+			logger.Warn("question flag is empty")
 			fmt.Println("Please provide a question using the --question flag.")
 			return
 		}
@@ -49,16 +56,17 @@ var askCmd = &cobra.Command{
 		if context != "" {
 			question = context + " " + question
 		}
-
+		logger.Info("sending question to OpenAI", zap.String("question", question))
 		response, err := client.Ask(question)
 		if err != nil {
+			logger.Error("failed to get response from OpenAI", zap.Error(err))
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
 
 		// Update session context
 		sess.AddContext(question, response)
-
+		logger.Info("response received", zap.String("response", response))
 		fmt.Printf("Mikonski: %s\n", response)
 	},
 }
