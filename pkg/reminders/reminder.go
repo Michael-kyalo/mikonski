@@ -18,6 +18,7 @@ func NewScheduler() *Scheduler {
 	return &Scheduler{reminders: []Reminder{}}
 }
 
+// set schedules a new Reminder
 func (s *Scheduler) Set(description string, t time.Time) error {
 	if t.Before(time.Now()) {
 		return errors.New("time must be in the future")
@@ -26,10 +27,12 @@ func (s *Scheduler) Set(description string, t time.Time) error {
 	return nil
 }
 
+// fetches a list of all the reminders
 func (s *Scheduler) List() []Reminder {
 	return s.reminders
 }
 
+// clear clears all the reminders
 func (s *Scheduler) Clear() {
 	s.reminders = []Reminder{}
 }
